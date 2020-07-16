@@ -16,27 +16,6 @@ DB = data_cred.loc['DB'].values[0]
 PW = data_cred.loc['PW'].values[0]
 HOST = data_cred.loc['HOST'].values[0]
 
-client = pymongo.MongoClient(f"mongodb://{USER}:{PW}@{HOST}/{DB}") # defaults to port 27017
-
-
-# get the data for the coins stored in the mongoDB
-
-db = client.coincaster
-# get the filenames of the coins
-coins = db.list_collection_names()
-
-# make sure to only capture csv
-files = [f for f in coins if f.endswith('csv')]
-
-# load all the coins in dataframesinto a dictionary
-dict_coins = {}
-for f in files:
-    dict_coins[f] = pd.DataFrame(list(db[f].find()))
-    dict_coins[f]['date'] = pd.to_datetime(dict_coins[f]['date'])
-    dict_coins[f] = dict_coins[f].sort_values(by='date', ascending=False)
-
-
-
 def clean_numeric_columns(row, col):
     """
     Cleans the numeric columns given as a str col.
@@ -163,8 +142,33 @@ def upload_data_to_mongo(client, data_new, coin, log=True):
         print(f"No new record for coin {coin} where found.")
     return None
 
+
+
+
+
+
+
+
+
+client = pymongo.MongoClient(f"mongodb://{USER}:{PW}@{HOST}/{DB}") # defaults to port 27017
+
+
+
+
+
+# get the data for the coins stored in the mongoDB
+
+db = client.coincaster
+# get the filenames of the coins
+coins = db.list_collection_names()
+
+# make sure to only capture csv
+files = [f for f in coins if f.endswith('csv')]
+
 log = True
-for coin in dict_coins.keys():
-    data_mongo = dict_coins[coin]
+for f in files:
+    data_mongo = pd.DataFrame(list(db[f].find()))
+    data_mongo['date'] = pd.to_datetime(data_mongo['date'])
+    data_mongo = data_mongo.sort_values(by='date', ascending=False)
     data_new = get_new_data(data_mongo)
     upload_data_to_mongo(client, data_new, coin, log)
