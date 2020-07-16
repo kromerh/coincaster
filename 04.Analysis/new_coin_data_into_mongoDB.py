@@ -166,8 +166,8 @@ coins = db.list_collection_names()
 files = [f for f in coins if f.endswith('csv')]
 
 log = True
-for f in files:
-    data_mongo = pd.DataFrame(list(db[f].find()))
+for coin in files:
+    data_mongo = pd.DataFrame(list(db[coin].find()))
     data_mongo['date'] = pd.to_datetime(data_mongo['date'])
     data_mongo = data_mongo.sort_values(by='date', ascending=False)
     data_new = get_new_data(data_mongo)
